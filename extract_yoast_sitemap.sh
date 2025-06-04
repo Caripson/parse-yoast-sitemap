@@ -12,6 +12,38 @@ require_command() {
     fi
 }
 
+# Return the modification time of a file in seconds since the epoch.
+file_mtime() {
+    if stat -c %Y "$1" >/dev/null 2>&1; then
+        stat -c %Y "$1"
+    else
+        stat -f %m "$1"
+    fi
+}
+
+# Output the size of a file in bytes.
+file_size() {
+    if stat -c %s "$1" >/dev/null 2>&1; then
+        stat -c %s "$1"
+    else
+        stat -f %z "$1"
+    fi
+}
+
+# Hash a string using whichever tool is available.
+hash_string() {
+    if command -v md5sum >/dev/null 2>&1; then
+        printf '%s' "$1" | md5sum | cut -d' ' -f1
+    elif command -v md5 >/dev/null 2>&1; then
+        printf '%s' "$1" | md5 | awk '{print $NF}'
+    elif command -v shasum >/dev/null 2>&1; then
+        printf '%s' "$1" | shasum | cut -d' ' -f1
+    else
+        echo "No hashing command found" >&2
+        exit 1
+    fi
+}
+
 usage() {
     # Print script usage information and exit with an error code.
     echo "📥 Usage: $0 [-e] [-j jobs] [-a user_agent] [-f pattern] [-c] [-k days] [-r] [--report-json file] [--report-csv file] [--process-report file] <config_file> <output_file>" >&2
@@ -41,8 +73,8 @@ generate_report() {
     local old_file="$2"
     local new_file="$3"
     local old_size new_size
-    old_size=$(stat -c %s "$old_file" 2>/dev/null || echo 0)
-    new_size=$(stat -c %s "$new_file")
+    old_size=$(file_size "$old_file" 2>/dev/null || echo 0)
+    new_size=$(file_size "$new_file")
     echo "Changes for $url:" >&2
     echo "  Size: $old_size -> $new_size" >&2
     local tmp_old tmp_new
@@ -64,13 +96,13 @@ generate_report() {
         if [[ -z "${old_map[$u]+x}" ]]; then
             added+=("$u")
             if [[ -n "${REPORT_CSV_FILE:-}" ]]; then
-                printf 'sitemap-%s,%s,NEW,%s\n' "$(date -r "$new_file" +%s)" "$u" "${new_map[$u]}" >> "$REPORT_CSV_FILE"
+                printf 'sitemap-%s,%s,NEW,%s\n' "$(file_mtime "$new_file")" "$u" "${new_map[$u]}" >> "$REPORT_CSV_FILE"
             fi
         else
             if [[ "${old_map[$u]}" != "${new_map[$u]}" ]]; then
                 changed+=("$u")
                 if [[ -n "${REPORT_CSV_FILE:-}" ]]; then
-                    printf 'sitemap-%s,%s,Change,%s\n' "$(date -r "$new_file" +%s)" "$u" "${new_map[$u]}" >> "$REPORT_CSV_FILE"
+                    printf 'sitemap-%s,%s,Change,%s\n' "$(file_mtime "$new_file")" "$u" "${new_map[$u]}" >> "$REPORT_CSV_FILE"
                 fi
             fi
         fi
@@ -79,7 +111,7 @@ generate_report() {
         if [[ -z "${new_map[$u]+x}" ]]; then
             removed+=("$u")
             if [[ -n "${REPORT_CSV_FILE:-}" ]]; then
-                printf 'sitemap-%s,%s,deleted,%s\n' "$(date -r "$new_file" +%s)" "$u" "${old_map[$u]}" >> "$REPORT_CSV_FILE"
+                printf 'sitemap-%s,%s,deleted,%s\n' "$(file_mtime "$new_file")" "$u" "${old_map[$u]}" >> "$REPORT_CSV_FILE"
             fi
         fi
     done
@@ -102,7 +134,7 @@ generate_report() {
         added_json=$(printf '%s\n' "${added[@]}" | jq -Rn '[inputs] | map(select(length>0))')
         removed_json=$(printf '%s\n' "${removed[@]}" | jq -Rn '[inputs] | map(select(length>0))')
         changed_json=$(printf '%s\n' "${changed[@]}" | jq -Rn '[inputs] | map(select(length>0))')
-        ts=$(date -r "$new_file" +"%s")
+        ts=$(file_mtime "$new_file")
         jq -n --arg url "$url" \
               --argjson old_size "$old_size" \
               --argjson new_size "$new_size" \
@@ -125,7 +157,7 @@ fetch_locs() {
 
     # Determine cache file based on a hash of the URL.
     local hash
-    hash=$(printf '%s' "$url" | md5sum | cut -d' ' -f1)
+    hash=$(hash_string "$url")
     local cache_file="$CACHE_DIR/$hash.xml"
     local max_age=$((CACHE_DAYS * 86400))
     local now
@@ -133,7 +165,7 @@ fetch_locs() {
     local fetch_new=1
 
     if [[ -f "$cache_file" ]]; then
-        local age=$((now - $(stat -c %Y "$cache_file")))
+        local age=$((now - $(file_mtime "$cache_file")))
         if [[ $age -lt $max_age ]]; then
             fetch_new=0
         fi
@@ -272,7 +304,7 @@ main() {
     if [[ "$parallel_jobs" -gt 1 ]]; then
         # Temporary file to collect URL counts from each worker.
         local tmp_counts="$(mktemp)"
-        export -f fetch_locs
+        export -f fetch_locs file_mtime file_size hash_string
         export output_file tmp_counts echo_urls USER_AGENT FILTER_PATTERN CACHE_DIR CACHE_DAYS REPORT USE_C REPORT_JSON_FILE REPORT_CSV_FILE PROCESS_REPORT_FILE
         # Feed the sitemap URLs to xargs which spawns workers that append their
         # results to the output file and record how many URLs were written.
