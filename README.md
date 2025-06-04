@@ -18,3 +18,7 @@ bats tests/extract_yoast_sitemap.bats
 ```
 
 The test uses sample sitemaps in `tests/data` and verifies that `extract_yoast_sitemap.sh` outputs the expected URLs.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
