@@ -1,5 +1,5 @@
 if [[ $# -eq 0 ]] ; then
-                    echo 'run  extract_yoast_sitemap.sh https://www.yourdomain.com/sitemap_index.xml output.txt'
+                    echo 'run extract_yoast_sitemap.sh https://www.yourdomain.com/sitemap_index.xml output.txt'
                     exit 0
 fi
 
