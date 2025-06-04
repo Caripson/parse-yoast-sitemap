@@ -90,14 +90,18 @@ same across Linux and macOS.
 
 ## 🧪 Running Tests
 
-This repository uses [Bats](https://github.com/bats-core/bats-core) for testing. After installing the `bats` package, run:
+This repository uses [Bats](https://github.com/bats-core/bats-core) and
+[pytest](https://docs.pytest.org/) for testing. After installing the `bats`
+package and Python dependencies, run:
 
 ```bash
 bats tests/extract_yoast_sitemap.bats
+pytest
 ```
 
-
-The test uses sample sitemaps in `tests/data` and verifies that `extract_yoast_sitemap.sh` outputs the expected URLs.
+The Bats suite uses sample sitemaps in `tests/data` and verifies that
+`extract_yoast_sitemap.sh` outputs the expected URLs. The pytest suite checks the
+`process_report.py` helper.
 
 ## 📝 Example Run
 
