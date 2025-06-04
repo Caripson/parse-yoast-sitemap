@@ -88,7 +88,9 @@ def start(cfg_path: str) -> None:
         ]
     )
     print(f"Starting instance {instance_id} ...")
-    subprocess.check_call(["aws", "ec2", "wait", "instance-running", "--instance-ids", instance_id])
+    subprocess.check_call(
+        ["aws", "ec2", "wait", "instance-running", "--instance-ids", instance_id]
+    )
     ip = run(
         [
             "aws",
@@ -149,8 +151,12 @@ def start(cfg_path: str) -> None:
 
 def stop(instance_id: str) -> None:
     print(f"Terminating {instance_id} ...")
-    subprocess.check_call(["aws", "ec2", "terminate-instances", "--instance-ids", instance_id])
-    subprocess.check_call(["aws", "ec2", "wait", "instance-terminated", "--instance-ids", instance_id])
+    subprocess.check_call(
+        ["aws", "ec2", "terminate-instances", "--instance-ids", instance_id]
+    )
+    subprocess.check_call(
+        ["aws", "ec2", "wait", "instance-terminated", "--instance-ids", instance_id]
+    )
     print("Instance terminated")
 
 
