@@ -118,7 +118,7 @@ generate_report() {
 fetch_locs() {
     # Retrieve all <loc> entries from the sitemap passed as the first argument.
     local url="$1"
-    local -a curl_cmd=(curl -s)
+    local -a curl_cmd=(curl -sf)
     if [[ -n "$USER_AGENT" ]]; then
         curl_cmd+=( -A "$USER_AGENT" )
     fi

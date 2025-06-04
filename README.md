@@ -44,6 +44,9 @@ default, sitemaps are processed sequentially. To fetch them in parallel, set the
 * `--report-csv` &nbsp; append detailed change rows to the given CSV file
 * `--process-report` &nbsp; create an HTML/PDF report from the JSON data
 
+The script uses `curl --fail`, so any HTTP error (status code >= 400) will
+terminate execution with a non-zero exit code.
+
 ## 🚀 Installation
 
 Use your system package manager to install the required tools:
