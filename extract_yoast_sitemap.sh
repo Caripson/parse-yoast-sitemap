@@ -25,8 +25,22 @@ main() {
         usage
     fi
 
-    # URL to the sitemap index.
-    local index_url="$1"
+    # Argument may be either a direct URL to a sitemap XML file or just the
+    # site root. When it does not look like a full XML URL, attempt to
+    # discover the sitemap from robots.txt.
+    local arg="$1"
+    local index_url
+    if [[ "$arg" =~ \.xml(\.gz)?$ ]]; then
+        index_url="$arg"
+    else
+        local site_root="${arg%/}"
+        local robots_url="${site_root}/robots.txt"
+        index_url=$(curl -s "$robots_url" | awk '/^Sitemap:/ {print $2; exit}')
+        if [[ -z "$index_url" ]]; then
+            echo "Could not determine sitemap from robots.txt" >&2
+            exit 1
+        fi
+    fi
     # File where the extracted URLs will be written.
     local output_file="$2"
 
