@@ -1,24 +1,43 @@
 #!/usr/bin/env bash
-if [[ $# -ne 2 ]]; then
-    echo "Usage: extract_yoast_sitemap.sh <sitemap_index_url> <output_file>"
+set -euo pipefail
+
+usage() {
+    echo "Usage: $0 <sitemap_index_url> <output_file>" >&2
     exit 1
-fi
+}
 
+fetch_locs() {
+    local url="$1"
+    curl -s "$url" | xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n
+}
 
-echo "# URL list" > "$2"
+main() {
+    if [[ $# -ne 2 ]]; then
+        usage
+    fi
 
-main_url=$(curl -s "$1" | grep "<loc>" | awk -F"<loc>" '{print $2} ' | awk -F"</loc>" '{print $1}')
+    local index_url="$1"
+    local output_file="$2"
 
-for i in $main_url
-do
+    if ! touch "$output_file" 2>/dev/null; then
+        echo "Cannot write to $output_file" >&2
+        exit 1
+    fi
 
-        urls=$(curl -s "$i" | grep "<loc>" | awk -F"<loc>" '{print $2} ' | awk -F"</loc>" '{print $1}')
-        for site_url in $urls
-        do
+    echo "# URL list" > "$output_file"
 
-                echo "$site_url"
-                echo "$site_url" >> "$2"
+    local -a sitemaps
+    mapfile -t sitemaps < <(fetch_locs "$index_url")
 
-         done
+    local parallel_jobs="${PARALLEL_JOBS:-1}"
+    if [[ "$parallel_jobs" -gt 1 ]]; then
+        printf '%s\n' "${sitemaps[@]}" | \
+            xargs -n1 -P "$parallel_jobs" -I{} bash -c 'fetch_locs "$1"' _ {} >> "$output_file"
+    else
+        for sitemap_url in "${sitemaps[@]}"; do
+            fetch_locs "$sitemap_url" >> "$output_file"
+        done
+    fi
+}
 
-done
+main "$@"
