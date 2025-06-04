@@ -1,0 +1,23 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats curl xmlstarlet jq gcc libxml2 libxml2-dev
+      - name: Install python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install matplotlib pytest
+      - name: Run Bats tests
+        run: bats tests/extract_yoast_sitemap.bats
+      - name: Run Pytest
+        run: pytest -v
