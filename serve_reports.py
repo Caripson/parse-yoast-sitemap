@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+import argparse
 import json
 import datetime
 from flask import Flask
@@ -66,6 +69,23 @@ def index():
     )
     return html
 
-if __name__ == '__main__':
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description='Serve real-time reports')
+    parser.add_argument(
+        'config',
+        nargs='?',
+        default='server_config.json',
+        help='Path to server configuration JSON'
+    )
+    args = parser.parse_args()
+
+    global CONFIG_PATH
+    CONFIG_PATH = args.config
+
     cfg = load_config()
     app.run(host='0.0.0.0', port=cfg.get('port', 8000), debug=True)
+
+
+if __name__ == '__main__':
+    main()
