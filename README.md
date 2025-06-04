@@ -37,6 +37,7 @@ default, sitemaps are processed sequentially. To fetch them in parallel, set the
 * `-j` &nbsp; run multiple workers in parallel
 * `-a` &nbsp; specify a custom User-Agent header when fetching sitemaps
 * `-f` &nbsp; only include URLs matching the given pattern
+* `-c` &nbsp; use the optional C parser for URL extraction
 
 ## 🚀 Installation
 
@@ -53,6 +54,13 @@ Use your system package manager to install the required tools:
   ```bash
   brew install curl xmlstarlet jq
   ```
+
+To enable the optional C parser, also install the `libxml2` development
+package and compile the helper binary:
+
+```bash
+gcc extract_locs.c -o extract_locs $(xml2-config --cflags --libs)
+```
 
 All of the above commands must be available in your `PATH` before running the script.
 
@@ -71,7 +79,7 @@ The test uses sample sitemaps in `tests/data` and verifies that `extract_yoast_s
 ## 📝 Example Run
 
 ```bash
-./extract_yoast_sitemap.sh -e -a "MyBot/1.0" -f page https://example.com/sitemap_index.xml urls.txt
+./extract_yoast_sitemap.sh -e -c -a "MyBot/1.0" -f page https://example.com/sitemap_index.xml urls.txt
 cat urls.txt
 ```
 
