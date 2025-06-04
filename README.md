@@ -15,19 +15,28 @@ broken-link audits or verifying crawl coverage.
 - **Real-time dashboard** – lightweight Flask UI (auto-refresh or SSE) to watch crawls live.  
 - **Cross-platform** – works on Linux and macOS; falls back to compatible `stat`/hash commands.  
 - **Automated tests & CI** – Bats + pytest with GitHub Actions, coverage ≥ 90 %.  
-- **Docker & PyPI** – run as a container or install via `pip install yoast-sitemap-monitor`.
+- **Docker image** – build the provided Dockerfile to run everything in a container.
 
 ## 📝 Requirements
 
-The script depends on the following command line tools:
+### Basic tools
+
+These must be installed for `extract_yoast_sitemap.sh` to run:
 
 * [`curl`](https://curl.se/) – fetches the sitemap XML files
 * [`xmlstarlet`](https://xmlstar.sourceforge.net) – extracts `<loc>` entries
 * [`jq`](https://stedolan.github.io/jq/) – reads the JSON config file
-* `xargs` – used for parallel execution when `-j` or `PARALLEL_JOBS` is set
+* `xargs` – used for parallel execution with `-j` or `PARALLEL_JOBS`
+
+### Optional for advanced features
+
+* `gcc` and `libxml2-dev` – compile `extract_locs.c` for a faster C parser
+* `pip install -r requirements.txt` – enables HTML/PDF reports and the
+  real-time Flask dashboard
+* `boto3` and `paramiko` or the AWS CLI – required for the EC2 helpers
 
 All commands must be available in your `PATH` for the script to run. By
-default, sitemaps are processed sequentially. To fetch them in parallel, set the
+default sitemaps are processed sequentially. To fetch them in parallel, set the
 `PARALLEL_JOBS` environment variable or pass `-j <jobs>` on the command line.
 
 ## 📥 Usage
@@ -127,7 +136,13 @@ download and print a report of added or removed URLs compared to the cached
 version. Combine `-r` with `--report-json <file>` to store these reports in
 machine readable form, or `--report-csv <file>` to log row based changes.
 Pass `--process-report <output.html>` together with `--report-json` to
-generate a styled HTML file (and a PDF if possible). Each sitemap change is
+generate a styled HTML file (and a PDF if possible). Run for example:
+
+```bash
+python3 -m yoast_monitor.process_report report.json report.html
+```
+
+Each sitemap change is
 appended as a single JSON object:
 
 ```json
@@ -177,17 +192,20 @@ Follow these steps to get up and running:
 
 1. Clone the repository and enter the folder:
    ```bash
-   git clone https://github.com/<user>/parse-yoast-sitemap.git
+   git clone https://github.com/Caripson/parse-yoast-sitemap.git
    cd parse-yoast-sitemap
-   git pull
    ```
-2. Install the dependencies (Debian/Ubuntu example):
+2. Install the basic tools (Debian/Ubuntu example):
    ```bash
    sudo apt-get update && sudo apt-get install curl xmlstarlet jq
    ```
-   To enable the C version of the parser you also need `libxml2` and a build step:
+   To use the faster C parser also install `libxml2-dev` and compile it:
    ```bash
    gcc extract_locs.c -o extract_locs $(xml2-config --cflags --libs)
+   ```
+   For HTML reports or the web dashboard install the Python packages:
+   ```bash
+   pip install -r requirements.txt
    ```
 3. Create your configuration file:
    ```bash
@@ -231,7 +249,7 @@ server:
 
 ```bash
 cp server_config.example.json server_config.json
-python3 serve_reports.py
+python3 -m yoast_monitor.serve_reports
 ```
 
 Edit `server_config.json` to change the port or choose a different JSON file to
@@ -240,7 +258,7 @@ override the refresh interval with the `--interval` flag when starting the
 server:
 
 ```bash
-python3 serve_reports.py --interval 10
+python3 -m yoast_monitor.serve_reports --interval 10
 ```
 
 The real-time page now uses Bootstrap and Bootstrap Icons for a cleaner look.
