@@ -79,6 +79,14 @@ pip install matplotlib weasyprint
 
 All of the above commands must be available in your `PATH` before running the script.
 
+## 🖥 Compatibility
+
+`extract_yoast_sitemap.sh` automatically detects whether `stat -c` and
+`md5sum` are present. On systems like macOS where they are not available it
+falls back to `stat -f` and `md5` or `shasum`. The helper functions
+`file_mtime` and `hash_string` handle this detection so the script works the
+same across Linux and macOS.
+
 
 ## 🧪 Running Tests
 
