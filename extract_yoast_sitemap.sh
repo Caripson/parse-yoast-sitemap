@@ -14,7 +14,7 @@ require_command() {
 
 usage() {
     # Print script usage information and exit with an error code.
-    echo "📥 Usage: $0 [-e] [-j jobs] [-a user_agent] [-f pattern] [-c] [-k days] [-r] <config_file> <output_file>" >&2
+    echo "📥 Usage: $0 [-e] [-j jobs] [-a user_agent] [-f pattern] [-c] [-k days] [-r] [--report-json file] <config_file> <output_file>" >&2
     exit 1
 }
 
@@ -53,6 +53,17 @@ generate_report() {
     if [[ -n "$removed" ]]; then
         echo "  Removed URLs:" >&2
         echo "$removed" | sed 's/^/    /' >&2
+    fi
+    if [[ -n "${REPORT_JSON_FILE:-}" ]]; then
+        local added_json removed_json
+        added_json=$(printf '%s\n' "$added" | jq -Rn '[inputs] | map(select(length>0))')
+        removed_json=$(printf '%s\n' "$removed" | jq -Rn '[inputs] | map(select(length>0))')
+        jq -n --arg url "$url" \
+              --argjson old_size "$old_size" \
+              --argjson new_size "$new_size" \
+              --argjson added_urls "$added_json" \
+              --argjson removed_urls "$removed_json" \
+              '{url:$url, old_size:$old_size, new_size:$new_size, added_urls:$added_urls, removed_urls:$removed_urls}' >> "$REPORT_JSON_FILE"
     fi
     rm -f "$tmp_old" "$tmp_new"
 }
@@ -125,41 +136,40 @@ main() {
     local use_c=false
     local cache_days=30
     local report=false
-    while getopts "j:ea:f:k:cr" opt; do
-        case "$opt" in
-            j)
-                cli_jobs="$OPTARG"
-                ;;
-            e)
-                echo_urls=true
-                ;;
-            a)
-                user_agent="$OPTARG"
-                ;;
-            f)
-                filter_pattern="$OPTARG"
-                ;;
-            c)
-                use_c=true
-                ;;
-            k)
-                cache_days="$OPTARG"
-                ;;
-            r)
-                report=true
-                ;;
+    local report_json_file=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -j)
+                cli_jobs="$2"; shift 2 ;;
+            -e)
+                echo_urls=true; shift ;;
+            -a)
+                user_agent="$2"; shift 2 ;;
+            -f)
+                filter_pattern="$2"; shift 2 ;;
+            -c)
+                use_c=true; shift ;;
+            -k)
+                cache_days="$2"; shift 2 ;;
+            -r)
+                report=true; shift ;;
+            --report-json)
+                report_json_file="$2"; shift 2 ;;
+            --)
+                shift; break ;;
+            -* )
+                usage ;;
             *)
-                usage
-                ;;
+                break ;;
         esac
     done
-    shift $((OPTIND - 1))
 
     USER_AGENT="$user_agent"
     FILTER_PATTERN="$filter_pattern"
     USE_C="$use_c"
     CACHE_DAYS="$cache_days"
     REPORT="$report"
+    REPORT_JSON_FILE="$report_json_file"
     CACHE_DIR="${CACHE_DIR:-cache}"
     if [[ "$USE_C" == true ]]; then
         require_command extract_locs
@@ -208,7 +218,7 @@ main() {
         # Temporary file to collect URL counts from each worker.
         local tmp_counts="$(mktemp)"
         export -f fetch_locs
-        export output_file tmp_counts echo_urls USER_AGENT FILTER_PATTERN CACHE_DIR CACHE_DAYS REPORT USE_C
+        export output_file tmp_counts echo_urls USER_AGENT FILTER_PATTERN CACHE_DIR CACHE_DAYS REPORT USE_C REPORT_JSON_FILE
         # Feed the sitemap URLs to xargs which spawns workers that append their
         # results to the output file and record how many URLs were written.
         printf '%s\n' "${sitemaps[@]}" | \

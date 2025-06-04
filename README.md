@@ -28,7 +28,7 @@ default, sitemaps are processed sequentially. To fetch them in parallel, set the
 ## 📥 Usage
 
 ```bash
-./extract_yoast_sitemap.sh [-e] [-j jobs] [-a user_agent] [-f pattern] [-k days] [-r] <config_file> <output_file>
+./extract_yoast_sitemap.sh [-e] [-j jobs] [-a user_agent] [-f pattern] [-k days] [-r] [--report-json file] <config_file> <output_file>
 ```
 
 ### Flags
@@ -40,6 +40,7 @@ default, sitemaps are processed sequentially. To fetch them in parallel, set the
 * `-c` &nbsp; use the optional C parser for URL extraction
 * `-k` &nbsp; keep downloaded sitemaps for the given number of days (default 30)
 * `-r` &nbsp; fetch new versions and report changes compared to the cached copy
+* `--report-json` &nbsp; append change summaries as JSON objects to the given file
 
 ## 🚀 Installation
 
@@ -91,7 +92,12 @@ Downloaded sitemap files are stored in the `cache` directory. By default the
 script keeps them for 30 days to avoid unnecessary network requests. The
 retention period can be adjusted with the `-k` flag. Use `-r` to force a fresh
 download and print a report of added or removed URLs compared to the cached
-version.
+version. Combine `-r` with `--report-json <file>` to store these reports in
+machine readable form. Each sitemap change is appended as a single JSON object:
+
+```json
+{"url":"https://example.com/sitemap.xml","old_size":123,"new_size":156,"added_urls":["https://example.com/new"],"removed_urls":[]}
+```
 
 ## 🐳 Running with Docker
 
