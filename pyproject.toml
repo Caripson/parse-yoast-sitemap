@@ -12,6 +12,7 @@ Flask = "*"
 matplotlib = "*"
 weasyprint = "*"
 psutil = "*"
+paramiko = "*"
 
 [tool.poetry.scripts]
 yoast-monitor = "yoast_monitor.cli:main"

@@ -1,0 +1,12 @@
+{
+  "ami": "ami-1234567890abcdef0",
+  "instance_type": "t3a.micro",
+  "key_name": "my-key",
+  "security_group": "sg-0123456789abcdef0",
+  "ssh_user": "ubuntu",
+  "ssh_key_path": "~/.ssh/id_rsa",
+  "repo_url": "https://github.com/Caripson/parse-yoast-sitemap.git",
+  "server_port": 8080,
+  "allowed_ip": "203.0.113.10/32"
+}
+

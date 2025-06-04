@@ -4,3 +4,4 @@ weasyprint
 psutil
 types-Flask
 types-psutil
+paramiko

@@ -268,6 +268,26 @@ server. Terminate the instance when done:
 python3 ec2_manager.py stop <instance-id>
 ```
 
+### Using the AWS CLI
+
+If you prefer to rely on the AWS CLI rather than boto3, the repository also
+includes `ec2_cli.py`. Ensure the [AWS CLI](https://aws.amazon.com/cli/) is
+installed and configured. Create `ec2_cli_config.json` based on
+`ec2_cli_config.example.json` and run:
+
+```bash
+python3 ec2_cli.py start --config ec2_cli_config.json
+```
+
+The default configuration launches a small Ubuntu instance using the `t3a`
+family. The script ensures that the HTTP port specified in `server_port` is
+open in the security group for the IP range defined by `allowed_ip` (or to the
+world if you use `0.0.0.0/0`). Terminate the instance with:
+
+```bash
+python3 ec2_cli.py stop <instance-id>
+```
+
 
 ## 🛡 Best Practices
 
@@ -283,4 +303,5 @@ python3 ec2_manager.py stop <instance-id>
 * `extract_yoast_sitemap.sh` now records timestamps in JSON reports.
 * Included `requirements.txt` and `server_config.example.json`.
 * Added `ec2_manager.py` for easy EC2 deployment and live server metrics.
+* Added `ec2_cli.py` for deployments via the AWS CLI.
 
