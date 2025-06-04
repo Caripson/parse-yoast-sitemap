@@ -9,6 +9,15 @@ are processed sequentially. To fetch them in parallel, set the
 `PARALLEL_JOBS` environment variable or pass `-j <jobs>` on the command
 line; parallel execution relies on `xargs` to spawn multiple workers.
 
+## Usage
+
+```bash
+./extract_yoast_sitemap.sh [-e] [-j jobs] <config_file> <output_file>
+```
+
+* `-e`  also echo each extracted URL to stdout
+* `-j`  run multiple workers in parallel
+
 ## 🚀 Installation
 
 Use your system package manager to install the required tools:
@@ -42,7 +51,7 @@ The test uses sample sitemaps in `tests/data` and verifies that `extract_yoast_s
 ## 📝 Example Run
 
 ```bash
-./extract_yoast_sitemap.sh https://example.com/sitemap_index.xml urls.txt
+./extract_yoast_sitemap.sh -e https://example.com/sitemap_index.xml urls.txt
 cat urls.txt
 ```
 

@@ -51,6 +51,20 @@ teardown() {
   [[ "$output" == *"🔢 Extracted 4 URLs."* ]]
 }
 
+@test "echoes URLs with -e" {
+  run bash extract_yoast_sitemap.sh -e "$TMP_CONFIG" "$TMP_OUT"
+  [ "$status" -eq 0 ]
+  grep -q "http://example.com/page1" "$TMP_OUT"
+  grep -q "http://example.com/page2" "$TMP_OUT"
+  grep -q "http://example.com/post1" "$TMP_OUT"
+  grep -q "http://example.com/post2" "$TMP_OUT"
+  [[ "$output" == *"http://example.com/page1"* ]]
+  [[ "$output" == *"http://example.com/page2"* ]]
+  [[ "$output" == *"http://example.com/post1"* ]]
+  [[ "$output" == *"http://example.com/post2"* ]]
+  [[ "$output" == *"🔢 Extracted 4 URLs."* ]]
+}
+
 @test "errors when curl is missing" {
   BIN_DIR="$(mktemp -d)"
   ln -s "$(command -v xmlstarlet)" "$BIN_DIR/xmlstarlet"
