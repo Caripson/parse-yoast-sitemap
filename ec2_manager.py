@@ -15,7 +15,7 @@ DEFAULT_CONFIG = {
     "security_groups": [],
     "ssh_user": "ec2-user",
     "ssh_key_path": "~/.ssh/id_rsa",
-    "repo_url": "https://github.com/user/parse-yoast-sitemap.git",
+    "repo_url": "https://github.com/Caripson/parse-yoast-sitemap.git",
     "server_port": 8080,
 }
 
