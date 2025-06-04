@@ -28,6 +28,7 @@ teardown() {
   grep -q "http://example.com/page2" "$TMP_OUT"
   grep -q "http://example.com/post1" "$TMP_OUT"
   grep -q "http://example.com/post2" "$TMP_OUT"
+  [[ "$output" == *"🔢 Extracted 4 URLs."* ]]
 }
 
 @test "extracts URLs in parallel" {
@@ -37,6 +38,7 @@ teardown() {
   grep -q "http://example.com/page2" "$TMP_OUT"
   grep -q "http://example.com/post1" "$TMP_OUT"
   grep -q "http://example.com/post2" "$TMP_OUT"
+  [[ "$output" == *"🔢 Extracted 4 URLs."* ]]
 }
 
 @test "accepts -j flag" {
@@ -46,6 +48,7 @@ teardown() {
   grep -q "http://example.com/page2" "$TMP_OUT"
   grep -q "http://example.com/post1" "$TMP_OUT"
   grep -q "http://example.com/post2" "$TMP_OUT"
+  [[ "$output" == *"🔢 Extracted 4 URLs."* ]]
 }
 
 @test "errors when curl is missing" {
