@@ -1,0 +1,10 @@
+{
+  "ami": "ami-1234567890abcdef0",
+  "instance_type": "t3.micro",
+  "key_name": "my-key",
+  "security_groups": ["sg-0123456789abcdef0"],
+  "ssh_user": "ec2-user",
+  "ssh_key_path": "~/.ssh/id_rsa",
+  "repo_url": "https://github.com/yourname/parse-yoast-sitemap.git",
+  "server_port": 8080
+}

@@ -236,6 +236,28 @@ The web page summarizes the total number of URLs that have been added,
 changed or removed across all runs and shows the last ten executions in a
 table.
 
+## 🚀 EC2 Deployment
+
+Use `ec2_manager.py` to spin up an AWS EC2 instance that automatically
+clones this project and launches the real-time server. Before running the
+script, create `ec2_config.json` based on `ec2_config.example.json` and
+fill in your AMI, key pair and security group information. Then start an
+instance:
+
+```bash
+python3 ec2_manager.py start --config ec2_config.json
+```
+
+The script waits until the web server is reachable and prints the instance
+IP address. Browse to `http://<ip>:8080` (or your configured port) to view
+the live report along with CPU, memory and disk usage statistics for the
+server. Terminate the instance when done:
+
+```bash
+python3 ec2_manager.py stop <instance-id>
+```
+
+
 ## 🛡 Best Practices
 
 * Keep the `cache` directory under version control if you want reproducible
@@ -249,4 +271,5 @@ table.
 * Added trending charts and a built-in Flask server for real-time monitoring.
 * `extract_yoast_sitemap.sh` now records timestamps in JSON reports.
 * Included `requirements.txt` and `server_config.example.json`.
+* Added `ec2_manager.py` for easy EC2 deployment and live server metrics.
 
