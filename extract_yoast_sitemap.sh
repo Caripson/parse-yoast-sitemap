@@ -7,19 +7,53 @@ set -euo pipefail
 
 usage() {
     # Print script usage information and exit with an error code.
-    echo "Usage: $0 <sitemap_index_url> <output_file>" >&2
+    echo "Usage: $0 [-j jobs] [-u user-agent] <sitemap_index_url> <output_file>" >&2
     exit 1
 }
 
 fetch_locs() {
     # Retrieve all <loc> entries from the sitemap passed as the first argument.
     local url="$1"
-    # curl downloads the XML and xmlstarlet prints every value of <loc> on a
-    # separate line.
-    curl -s "$url" | xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n
+
+    # Build curl arguments, optionally adding a custom user agent.
+    local -a curl_args=( -sL )
+    if [[ -n "${USER_AGENT:-}" ]]; then
+        curl_args+=( -A "$USER_AGENT" )
+    fi
+
+    # If the sitemap is a gzipped file, decompress it before parsing.
+    if [[ "$url" == *.gz ]]; then
+        curl "${curl_args[@]}" "$url" | gunzip -c |
+            xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n
+    else
+        curl "${curl_args[@]}" "$url" |
+            xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n
+    fi
 }
 
 main() {
+    # Default number of parallel workers. Can be overridden with -j or
+    # the PARALLEL_JOBS environment variable.
+    local parallel_jobs="${PARALLEL_JOBS:-1}"
+    # Optional user agent string for curl.
+    local user_agent=""
+
+    # Parse command line options.
+    while getopts ":j:u:" opt; do
+        case "$opt" in
+            j)
+                parallel_jobs="$OPTARG"
+                ;;
+            u)
+                user_agent="$OPTARG"
+                ;;
+            *)
+                usage
+                ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
     # Ensure exactly two arguments are provided: the index URL and output file.
     if [[ $# -ne 2 ]]; then
         usage
@@ -29,6 +63,9 @@ main() {
     local index_url="$1"
     # File where the extracted URLs will be written.
     local output_file="$2"
+
+    # Make variables available to functions executed in subshells.
+    export USER_AGENT="$user_agent"
 
     # Verify that the output file is writable.
     if ! touch "$output_file" 2>/dev/null; then
@@ -44,7 +81,6 @@ main() {
     mapfile -t sitemaps < <(fetch_locs "$index_url")
 
     # Determine how many parallel workers should run.
-    local parallel_jobs="${PARALLEL_JOBS:-1}"
     if [[ "$parallel_jobs" -gt 1 ]]; then
         # Export the helper so xargs can call it in parallel.
         export -f fetch_locs
