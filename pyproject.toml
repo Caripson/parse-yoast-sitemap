@@ -18,11 +18,14 @@ yoast-monitor = "yoast_monitor.cli:main"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
+pytest-cov = "*"
 coverage = "*"
 black = "*"
 ruff = "*"
 mypy = "*"
 bandit = "*"
+types-Flask = "*"
+types-psutil = "*"
 
 [build-system]
 requires = ["poetry-core"]
