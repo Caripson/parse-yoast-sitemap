@@ -31,6 +31,7 @@ main() {
 
     local parallel_jobs="${PARALLEL_JOBS:-1}"
     if [[ "$parallel_jobs" -gt 1 ]]; then
+        export -f fetch_locs
         printf '%s\n' "${sitemaps[@]}" | \
             xargs -n1 -P "$parallel_jobs" -I{} bash -c 'fetch_locs "$1"' _ {} >> "$output_file"
     else
