@@ -7,7 +7,7 @@ set -euo pipefail
 
 usage() {
     # Print script usage information and exit with an error code.
-    echo "Usage: $0 <sitemap_index_url> <output_file>" >&2
+    echo "Usage: $0 [-j jobs] <sitemap_index_url> <output_file>" >&2
     exit 1
 }
 
@@ -20,6 +20,20 @@ fetch_locs() {
 }
 
 main() {
+    # Parse options; currently only -j for specifying parallel jobs.
+    local cli_jobs=""
+    while getopts "j:" opt; do
+        case "$opt" in
+            j)
+                cli_jobs="$OPTARG"
+                ;;
+            *)
+                usage
+                ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
     # Ensure exactly two arguments are provided: the index URL and output file.
     if [[ $# -ne 2 ]]; then
         usage
@@ -43,8 +57,9 @@ main() {
     local -a sitemaps
     mapfile -t sitemaps < <(fetch_locs "$index_url")
 
-    # Determine how many parallel workers should run.
-    local parallel_jobs="${PARALLEL_JOBS:-1}"
+    # Determine how many parallel workers should run. The -j option overrides
+    # the PARALLEL_JOBS environment variable.
+    local parallel_jobs="${cli_jobs:-${PARALLEL_JOBS:-1}}"
     if [[ "$parallel_jobs" -gt 1 ]]; then
         # Export the helper so xargs can call it in parallel.
         export -f fetch_locs
