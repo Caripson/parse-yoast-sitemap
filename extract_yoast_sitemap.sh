@@ -5,6 +5,13 @@
 # variables as an error and make pipelines fail if any command fails.
 set -euo pipefail
 
+require_command() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "Required command '$1' not found" >&2
+        exit 1
+    fi
+}
+
 usage() {
     # Print script usage information and exit with an error code.
     echo "Usage: $0 [-j jobs] <sitemap_index_url> <output_file>" >&2
@@ -20,6 +27,8 @@ fetch_locs() {
 }
 
 main() {
+    require_command curl
+    require_command xmlstarlet
     # Parse options; currently only -j for specifying parallel jobs.
     local cli_jobs=""
     while getopts "j:" opt; do
