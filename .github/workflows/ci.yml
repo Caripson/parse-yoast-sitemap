@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats curl xmlstarlet jq gcc libxml2 libxml2-dev shellcheck
+      - name: Install Poetry
+        run: |
+          pip install poetry
+      - name: Install dependencies
+        run: |
+          poetry install --with dev
+      - name: Run black
+        run: poetry run black --check .
+      - name: Run ruff
+        run: poetry run ruff .
+      - name: Run mypy
+        run: poetry run mypy src
+      - name: Run bandit
+        run: poetry run bandit -r src -ll
+      - name: Run shellcheck
+        run: shellcheck extract_yoast_sitemap.sh
+      - name: Run Bats tests
+        run: bats tests/extract_yoast_sitemap.bats
+      - name: Run pytest
+        run: poetry run pytest --cov=yoast_monitor --cov-fail-under=90

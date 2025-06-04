@@ -335,7 +335,7 @@ main() {
 
     echo "✅ Extracted $url_count URLs."
     if [[ -n "${PROCESS_REPORT_FILE:-}" && -n "${REPORT_JSON_FILE:-}" ]]; then
-        python3 "$(dirname "$0")/process_report.py" "$REPORT_JSON_FILE" "$PROCESS_REPORT_FILE"
+        python3 -m yoast_monitor.process_report "$REPORT_JSON_FILE" "$PROCESS_REPORT_FILE"
     fi
 }
 
