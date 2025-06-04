@@ -14,7 +14,7 @@ require_command() {
 
 usage() {
     # Print script usage information and exit with an error code.
-    echo "Usage: $0 [-j jobs] <config_file> <output_file>" >&2
+    echo "Usage: $0 [-e] [-j jobs] <config_file> <output_file>" >&2
     exit 1
 }
 
@@ -30,12 +30,16 @@ main() {
     require_command curl
     require_command xmlstarlet
     require_command jq
-    # Parse options; currently only -j for specifying parallel jobs.
+    # Parse options; -j for jobs and -e to echo URLs to stdout.
     local cli_jobs=""
-    while getopts "j:" opt; do
+    local echo_urls=false
+    while getopts "j:e" opt; do
         case "$opt" in
             j)
                 cli_jobs="$OPTARG"
+                ;;
+            e)
+                echo_urls=true
                 ;;
             *)
                 usage
@@ -87,13 +91,17 @@ main() {
         # Temporary file to collect URL counts from each worker.
         local tmp_counts="$(mktemp)"
         export -f fetch_locs
-        export output_file tmp_counts
+        export output_file tmp_counts echo_urls
         # Feed the sitemap URLs to xargs which spawns workers that append their
         # results to the output file and record how many URLs were written.
         printf '%s\n' "${sitemaps[@]}" | \
             xargs -n1 -P "$parallel_jobs" -I{} bash -c '
-                count=$(fetch_locs "$1" | tee -a "$output_file" | wc -l)
-                echo "$count" >> "$tmp_counts"
+                urls=$(fetch_locs "$1")
+                if [[ "$echo_urls" == true ]]; then
+                    printf "%s\n" "$urls"
+                fi
+                printf "%s\n" "$urls" >> "$output_file"
+                printf "%s\n" "$urls" | wc -l >> "$tmp_counts"
             ' _ {}
         while read -r c; do
             ((url_count+=c))
@@ -104,6 +112,9 @@ main() {
         for sitemap_url in "${sitemaps[@]}"; do
             mapfile -t tmp < <(fetch_locs "$sitemap_url")
             printf '%s\n' "${tmp[@]}" >> "$output_file"
+            if [[ "$echo_urls" == true ]]; then
+                printf '%s\n' "${tmp[@]}"
+            fi
             ((url_count+=${#tmp[@]}))
         done
     fi
