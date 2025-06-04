@@ -54,9 +54,9 @@ parse_locs_file() {
     # Extract <loc> entries from a local XML file.
     local file="$1"
     if [[ "$USE_C" == true ]]; then
-        cat "$file" | extract_locs
+        extract_locs < "$file"
     else
-        cat "$file" | xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n
+        xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n "$file"
     fi
 }
 
@@ -185,10 +185,9 @@ fetch_locs() {
 
     local results
     if [[ "$USE_C" == true ]]; then
-        results=$(cat "$cache_file" | extract_locs)
+        results=$(extract_locs < "$cache_file")
     else
-        results=$(cat "$cache_file" | \
-            xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n)
+        results=$(xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n "$cache_file")
     fi
     if [[ -n "${FILTER_PATTERN:-}" ]]; then
         results=$(printf '%s\n' "$results" | grep -E "$FILTER_PATTERN" || true)
@@ -303,20 +302,21 @@ main() {
     local parallel_jobs="${cli_jobs:-${PARALLEL_JOBS:-1}}"
     if [[ "$parallel_jobs" -gt 1 ]]; then
         # Temporary file to collect URL counts from each worker.
-        local tmp_counts="$(mktemp)"
+        local tmp_counts
+        tmp_counts="$(mktemp)"
         export -f fetch_locs file_mtime file_size hash_string
         export output_file tmp_counts echo_urls USER_AGENT FILTER_PATTERN CACHE_DIR CACHE_DAYS REPORT USE_C REPORT_JSON_FILE REPORT_CSV_FILE PROCESS_REPORT_FILE
         # Feed the sitemap URLs to xargs which spawns workers that append their
         # results to the output file and record how many URLs were written.
         printf '%s\n' "${sitemaps[@]}" | \
-            xargs -n1 -P "$parallel_jobs" -I{} bash -c '
-                urls=$(fetch_locs "$1")
-                if [[ "$echo_urls" == true ]]; then
-                    printf "%s\n" "$urls"
+            xargs -n1 -P "$parallel_jobs" -I{} bash -c "
+                urls=\$(fetch_locs \"\$1\")
+                if [[ \"\$echo_urls\" == true ]]; then
+                    printf '%s\\n' \"\$urls\"
                 fi
-                printf "%s\n" "$urls" >> "$output_file"
-                printf "%s\n" "$urls" | wc -l >> "$tmp_counts"
-            ' _ {}
+                printf '%s\\n' \"\$urls\" >> '$output_file'
+                printf '%s\\n' \"\$urls\" | wc -l >> '$tmp_counts'
+            " _ {}
         while read -r c; do
             ((url_count+=c))
         done < "$tmp_counts"
