@@ -4,6 +4,7 @@ import argparse
 import json
 import datetime
 from flask import Flask
+import psutil
 
 app = Flask(__name__)
 
@@ -35,6 +36,11 @@ def load_report(path):
 def index():
     cfg = load_config()
     data = load_report(cfg.get("report_json"))
+    stats = {
+        "cpu": psutil.cpu_percent(interval=0.1),
+        "mem": psutil.virtual_memory(),
+        "disk": psutil.disk_io_counters(),
+    }
     added = sum(len(d.get("added_urls", [])) for d in data)
     changed = sum(len(d.get("changed_urls", [])) for d in data)
     removed = sum(len(d.get("removed_urls", [])) for d in data)
@@ -57,6 +63,7 @@ def index():
     <style>table,th,td{{border:1px solid #ccc;border-collapse:collapse;padding:4px;}}</style>
     </head><body>
     <h1>Real-Time Sitemap Report</h1>
+    <p>CPU Usage: {cpu:.1f}% | Memory: {mem_used:.1f}/{mem_total:.1f} MB | Disk Read: {disk_read}B | Disk Write: {disk_write}B</p>
     <p>Total added: {added} | Total changed: {changed} | Total removed: {removed}</p>
     <table>
     <tr><th>Timestamp</th><th>Added</th><th>Changed</th><th>Removed</th></tr>
@@ -65,6 +72,11 @@ def index():
     </body></html>
     """.format(
         ref=cfg.get("refresh_interval", 5),
+        cpu=stats["cpu"],
+        mem_used=stats["mem"].used / 1024 / 1024,
+        mem_total=stats["mem"].total / 1024 / 1024,
+        disk_read=stats["disk"].read_bytes,
+        disk_write=stats["disk"].write_bytes,
         added=added,
         changed=changed,
         removed=removed,

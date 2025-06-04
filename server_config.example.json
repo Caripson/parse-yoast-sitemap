@@ -1,5 +1,5 @@
 {
-  "port": 8000,
+  "port": 8080,
   "report_json": "report.json",
   "refresh_interval": 5
 }
