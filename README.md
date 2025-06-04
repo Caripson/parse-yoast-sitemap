@@ -1,22 +1,41 @@
 # parse-yoast-sitemap
-Parse yoast sitemap.xml with bash to URL list
+Parse a Yoast sitemap.xml into a plain URL list using a single Bash script.
+
+This tool targets **administrators and SEO specialists** who need a quick way
+to gather every URL that Yoast exposes in its sitemap index.  Typical use cases
+include site migrations, broken-link audits or verifying that all pages are
+being discovered by search engines.
+
+## 📚 History
+
+The script started as a small internal helper written by Johan Caripson to
+collect URLs from several WordPress sites.  It has since been cleaned up and
+packaged with a test suite so it can be reused by others.
 
 ## 📝 Requirements
 
-The script depends on `curl` and [`xmlstarlet`](https://xmlstar.sourceforge.net/).
-Both commands must be installed for the script to run. By default, sitemaps
-are processed sequentially. To fetch them in parallel, set the
-`PARALLEL_JOBS` environment variable or pass `-j <jobs>` on the command
-line; parallel execution relies on `xargs` to spawn multiple workers.
+The script depends on the following command line tools:
+
+* [`curl`](https://curl.se/) – fetches the sitemap XML files
+* [`xmlstarlet`](https://xmlstar.sourceforge.net) – extracts `<loc>` entries
+* [`jq`](https://stedolan.github.io/jq/) – reads the JSON config file
+* `xargs` – used for parallel execution when `-j` or `PARALLEL_JOBS` is set
+
+All commands must be available in your `PATH` for the script to run. By
+default, sitemaps are processed sequentially. To fetch them in parallel, set the
+`PARALLEL_JOBS` environment variable or pass `-j <jobs>` on the command line.
 
 ## 📥 Usage
 
 ```bash
-./extract_yoast_sitemap.sh [-e] [-j jobs] <config_file> <output_file>
+./extract_yoast_sitemap.sh [-e] [-j jobs] [-a user_agent] <config_file> <output_file>
 ```
 
-* `-e`  also echo each extracted URL to stdout
-* `-j`  run multiple workers in parallel
+### Flags
+
+* `-e` &nbsp; echo each extracted URL to stdout
+* `-j` &nbsp; run multiple workers in parallel
+* `-a` &nbsp; specify a custom User-Agent header when fetching sitemaps
 
 ## 🚀 Installation
 
@@ -25,16 +44,16 @@ Use your system package manager to install the required tools:
 * **Linux (apt)**
 
   ```bash
-  sudo apt-get update && sudo apt-get install curl xmlstarlet
+  sudo apt-get update && sudo apt-get install curl xmlstarlet jq
   ```
 
 * **macOS (brew)**
 
   ```bash
-  brew install curl xmlstarlet
+  brew install curl xmlstarlet jq
   ```
 
-Both commands must be available in your `PATH` before running the script.
+All of the above commands must be available in your `PATH` before running the script.
 
 
 ## 🧪 Running Tests
@@ -51,14 +70,22 @@ The test uses sample sitemaps in `tests/data` and verifies that `extract_yoast_s
 ## 📝 Example Run
 
 ```bash
-./extract_yoast_sitemap.sh -e https://example.com/sitemap_index.xml urls.txt
+./extract_yoast_sitemap.sh -e -a "MyBot/1.0" https://example.com/sitemap_index.xml urls.txt
 cat urls.txt
 ```
+
+## 🔭 Future Work
+
+Here are a few ideas for how this project could evolve:
+
+* Support for compressed (`.gz`) sitemaps
+* Docker container for reproducible runs
+* Option to filter URLs by pattern
 
 
 ## 🛠️ Troubleshooting
 
-If `curl` or `xmlstarlet` are missing in the Codex environment, tests may fail. Enable internet access or provide a setup script to install the packages before running tests.
+If `curl`, `xmlstarlet` or `jq` are missing in the Codex environment, tests may fail. Enable internet access or provide a setup script to install the packages before running tests.
 
 ## License
 

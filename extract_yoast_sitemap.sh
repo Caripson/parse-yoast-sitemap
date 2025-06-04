@@ -14,7 +14,7 @@ require_command() {
 
 usage() {
     # Print script usage information and exit with an error code.
-    echo "📥 Usage: $0 [-e] [-j jobs] <config_file> <output_file>" >&2
+    echo "📥 Usage: $0 [-e] [-j jobs] [-a user_agent] <config_file> <output_file>" >&2
     exit 1
 }
 
@@ -23,17 +23,22 @@ fetch_locs() {
     local url="$1"
     # curl downloads the XML and xmlstarlet prints every value of <loc> on a
     # separate line.
-    curl -s "$url" | xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n
+    local -a curl_cmd=(curl -s)
+    if [[ -n "$USER_AGENT" ]]; then
+        curl_cmd+=( -A "$USER_AGENT" )
+    fi
+    "${curl_cmd[@]}" "$url" | xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n
 }
 
 main() {
     require_command curl
     require_command xmlstarlet
     require_command jq
-    # Parse options; -j for jobs and -e to echo URLs to stdout.
+    # Parse options; -j for jobs, -e to echo URLs to stdout, -a to set curl user agent.
     local cli_jobs=""
     local echo_urls=false
-    while getopts "j:e" opt; do
+    local user_agent=""
+    while getopts "j:ea:" opt; do
         case "$opt" in
             j)
                 cli_jobs="$OPTARG"
@@ -41,12 +46,17 @@ main() {
             e)
                 echo_urls=true
                 ;;
+            a)
+                user_agent="$OPTARG"
+                ;;
             *)
                 usage
                 ;;
         esac
     done
     shift $((OPTIND - 1))
+
+    USER_AGENT="$user_agent"
 
     # Ensure exactly two arguments are provided: the config file and output file.
     if [[ $# -ne 2 ]]; then
