@@ -192,3 +192,37 @@ bash extract_yoast_sitemap.sh -a "MyBot/1.0" config.json urls.txt
 bash extract_yoast_sitemap.sh -c -j 2 config.json urls.txt
 ```
 
+## 📊 Real-Time Reporting
+
+Run the optional web server to monitor changes live. First install the Python
+packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+Create a `server_config.json` based on `server_config.example.json` and start the
+server:
+
+```bash
+cp server_config.example.json server_config.json
+python3 serve_reports.py
+```
+
+Open `http://localhost:8000` in your browser to see the latest statistics. The
+page automatically refreshes based on the `refresh_interval` setting.
+
+## 🛡 Best Practices
+
+* Keep the `cache` directory under version control if you want reproducible
+  reports.
+* Store report JSON files in a dedicated folder such as `reports/`.
+* Schedule regular sitemap checks via cron and point the web server to the same
+  report file for historical trends.
+
+## 📜 Change Log
+
+* Added trending charts and a built-in Flask server for real-time monitoring.
+* `extract_yoast_sitemap.sh` now records timestamps in JSON reports.
+* Included `requirements.txt` and `server_config.example.json`.
+

@@ -98,17 +98,19 @@ generate_report() {
     fi
 
     if [[ -n "${REPORT_JSON_FILE:-}" ]]; then
-        local added_json removed_json changed_json
+        local added_json removed_json changed_json ts
         added_json=$(printf '%s\n' "${added[@]}" | jq -Rn '[inputs] | map(select(length>0))')
         removed_json=$(printf '%s\n' "${removed[@]}" | jq -Rn '[inputs] | map(select(length>0))')
         changed_json=$(printf '%s\n' "${changed[@]}" | jq -Rn '[inputs] | map(select(length>0))')
+        ts=$(date -r "$new_file" +"%s")
         jq -n --arg url "$url" \
               --argjson old_size "$old_size" \
               --argjson new_size "$new_size" \
+              --arg timestamp "$ts" \
               --argjson added_urls "$added_json" \
               --argjson removed_urls "$removed_json" \
               --argjson changed_urls "$changed_json" \
-              '{url:$url, old_size:$old_size, new_size:$new_size, added_urls:$added_urls, removed_urls:$removed_urls, changed_urls:$changed_urls}' >> "$REPORT_JSON_FILE"
+              '{url:$url, old_size:$old_size, new_size:$new_size, timestamp:($timestamp|tonumber), added_urls:$added_urls, removed_urls:$removed_urls, changed_urls:$changed_urls}' >> "$REPORT_JSON_FILE"
     fi
     rm -f "$tmp_old" "$tmp_new"
 }
