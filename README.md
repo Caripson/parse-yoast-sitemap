@@ -28,7 +28,7 @@ default, sitemaps are processed sequentially. To fetch them in parallel, set the
 ## 📥 Usage
 
 ```bash
-./extract_yoast_sitemap.sh [-e] [-j jobs] [-a user_agent] [-f pattern] [-k days] [-r] [--report-json file] <config_file> <output_file>
+./extract_yoast_sitemap.sh [-e] [-j jobs] [-a user_agent] [-f pattern] [-k days] [-r] [--report-json file] [--report-csv file] [--process-report file] <config_file> <output_file>
 ```
 
 ### Flags
@@ -41,6 +41,8 @@ default, sitemaps are processed sequentially. To fetch them in parallel, set the
 * `-k` &nbsp; keep downloaded sitemaps for the given number of days (default 30)
 * `-r` &nbsp; fetch new versions and report changes compared to the cached copy
 * `--report-json` &nbsp; append change summaries as JSON objects to the given file
+* `--report-csv` &nbsp; append detailed change rows to the given CSV file
+* `--process-report` &nbsp; create an HTML/PDF report from the JSON data
 
 ## 🚀 Installation
 
@@ -63,6 +65,13 @@ package and compile the helper binary:
 
 ```bash
 gcc extract_locs.c -o extract_locs $(xml2-config --cflags --libs)
+```
+
+To enable HTML/PDF report generation, install the Python packages `matplotlib`
+and `weasyprint`:
+
+```bash
+pip install matplotlib weasyprint
 ```
 
 All of the above commands must be available in your `PATH` before running the script.
@@ -93,7 +102,10 @@ script keeps them for 30 days to avoid unnecessary network requests. The
 retention period can be adjusted with the `-k` flag. Use `-r` to force a fresh
 download and print a report of added or removed URLs compared to the cached
 version. Combine `-r` with `--report-json <file>` to store these reports in
-machine readable form. Each sitemap change is appended as a single JSON object:
+machine readable form, or `--report-csv <file>` to log row based changes.
+Pass `--process-report <output.html>` together with `--report-json` to
+generate a styled HTML file (and a PDF if possible). Each sitemap change is
+appended as a single JSON object:
 
 ```json
 {"url":"https://example.com/sitemap.xml","old_size":123,"new_size":156,"added_urls":["https://example.com/new"],"removed_urls":[]}

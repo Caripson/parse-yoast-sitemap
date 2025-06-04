@@ -126,3 +126,46 @@ teardown() {
   [ "$status" -ne 0 ]
   [[ "$output" == *jq* ]]
 }
+
+@test "writes CSV report with --report-csv" {
+  TMP_CFG2="$(mktemp)"
+  TMP_OUT2="$(mktemp)"
+  TMP_CSV="$(mktemp)"
+  TMP_INDEX="$(mktemp)"
+  TMP_POSTS="$(mktemp)"
+  cat > "$TMP_POSTS" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>http://example.com/post1</loc><lastmod>2020-01-01T00:00:00+00:00</lastmod></url>
+  <url><loc>http://example.com/post2</loc><lastmod>2020-01-02T00:00:00+00:00</lastmod></url>
+</urlset>
+EOF
+  cat > "$TMP_INDEX" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>file://$TMP_POSTS</loc></sitemap>
+</sitemapindex>
+EOF
+  cat > "$TMP_CFG2" <<EOF
+{
+  "domains": [
+    {"url": "file://$TMP_INDEX"}
+  ]
+}
+EOF
+  CACHE_DIR_DIR="$(mktemp -d)"
+  CACHE_DIR="$CACHE_DIR_DIR" bash extract_yoast_sitemap.sh "$TMP_CFG2" "$TMP_OUT2"
+  cat > "$TMP_POSTS" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>http://example.com/post1</loc><lastmod>2020-02-01T00:00:00+00:00</lastmod></url>
+  <url><loc>http://example.com/post3</loc><lastmod>2020-01-03T00:00:00+00:00</lastmod></url>
+</urlset>
+EOF
+  CACHE_DIR="$CACHE_DIR_DIR" run bash extract_yoast_sitemap.sh -r --report-csv "$TMP_CSV" "$TMP_CFG2" "$TMP_OUT2"
+  [ "$status" -eq 0 ]
+  grep -q "NEW" "$TMP_CSV"
+  grep -q "Change" "$TMP_CSV"
+  grep -q "deleted" "$TMP_CSV"
+  rm -f "$TMP_CFG2" "$TMP_OUT2" "$TMP_CSV" "$TMP_INDEX" "$TMP_POSTS"
+}
