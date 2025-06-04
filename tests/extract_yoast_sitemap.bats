@@ -36,3 +36,21 @@ teardown() {
   grep -q "http://example.com/post1" "$TMP_OUT"
   grep -q "http://example.com/post2" "$TMP_OUT"
 }
+
+@test "errors when curl is missing" {
+  BIN_DIR="$(mktemp -d)"
+  ln -s "$(command -v xmlstarlet)" "$BIN_DIR/xmlstarlet"
+  ln -s "$(command -v touch)" "$BIN_DIR/touch"
+  PATH="$BIN_DIR" run /usr/bin/bash extract_yoast_sitemap.sh "file://$TMP_INDEX" "$TMP_OUT"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *curl* ]]
+}
+
+@test "errors when xmlstarlet is missing" {
+  BIN_DIR="$(mktemp -d)"
+  ln -s "$(command -v curl)" "$BIN_DIR/curl"
+  ln -s "$(command -v touch)" "$BIN_DIR/touch"
+  PATH="$BIN_DIR" run /usr/bin/bash extract_yoast_sitemap.sh "file://$TMP_INDEX" "$TMP_OUT"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *xmlstarlet* ]]
+}
