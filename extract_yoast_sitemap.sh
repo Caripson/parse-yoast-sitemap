@@ -14,7 +14,7 @@ require_command() {
 
 usage() {
     # Print script usage information and exit with an error code.
-    echo "Usage: $0 [-e] [-j jobs] <config_file> <output_file>" >&2
+    echo "📥 Usage: $0 [-e] [-j jobs] <config_file> <output_file>" >&2
     exit 1
 }
 
@@ -119,7 +119,7 @@ main() {
         done
     fi
 
-    echo "🔢 Extracted $url_count URLs."
+    echo "✅ Extracted $url_count URLs."
 }
 
 main "$@"
