@@ -5,8 +5,11 @@ setup() {
   TMP_CONFIG="$(mktemp)"
   TMP_INDEX1="$(mktemp)"
   TMP_INDEX2="$(mktemp)"
+  TMP_BIN_DIR="$(mktemp -d)"
   sed "s|{{ROOT}}|file://${PWD}|g" tests/data/index1.template.xml > "$TMP_INDEX1"
   sed "s|{{ROOT}}|file://${PWD}|g" tests/data/index2.template.xml > "$TMP_INDEX2"
+  gcc extract_locs.c -o "$TMP_BIN_DIR/extract_locs" $(xml2-config --cflags --libs)
+  PATH="$TMP_BIN_DIR:$PATH"
   cat > "$TMP_CONFIG" <<EOF
 {
   "domains": [
@@ -19,6 +22,7 @@ EOF
 
 teardown() {
   rm -f "$TMP_OUT" "$TMP_CONFIG" "$TMP_INDEX1" "$TMP_INDEX2"
+  rm -rf "$TMP_BIN_DIR"
 }
 
 @test "extracts all URLs from sitemap" {
@@ -82,6 +86,16 @@ teardown() {
   [[ "$output" == *"http://example.com/page2"* ]]
   [[ "$output" == *"http://example.com/post1"* ]]
   [[ "$output" == *"http://example.com/post2"* ]]
+  [[ "$output" == *"✅ Extracted 4 URLs."* ]]
+}
+
+@test "uses C parser with -c" {
+  run bash extract_yoast_sitemap.sh -c "$TMP_CONFIG" "$TMP_OUT"
+  [ "$status" -eq 0 ]
+  grep -q "http://example.com/page1" "$TMP_OUT"
+  grep -q "http://example.com/page2" "$TMP_OUT"
+  grep -q "http://example.com/post1" "$TMP_OUT"
+  grep -q "http://example.com/post2" "$TMP_OUT"
   [[ "$output" == *"✅ Extracted 4 URLs."* ]]
 }
 

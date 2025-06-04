@@ -14,22 +14,26 @@ require_command() {
 
 usage() {
     # Print script usage information and exit with an error code.
-    echo "📥 Usage: $0 [-e] [-j jobs] [-a user_agent] [-f pattern] <config_file> <output_file>" >&2
+    echo "📥 Usage: $0 [-e] [-j jobs] [-a user_agent] [-f pattern] [-c] <config_file> <output_file>" >&2
     exit 1
 }
 
 fetch_locs() {
     # Retrieve all <loc> entries from the sitemap passed as the first argument.
     local url="$1"
-    # curl downloads the XML and xmlstarlet prints every value of <loc> on a
-    # separate line.
+    # curl downloads the XML and either xmlstarlet or the C module prints every
+    # value of <loc> on a separate line.
     local -a curl_cmd=(curl -s)
     if [[ -n "$USER_AGENT" ]]; then
         curl_cmd+=( -A "$USER_AGENT" )
     fi
     local results
-    results=$("${curl_cmd[@]}" "$url" | \
-        xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n)
+    if [[ "$USE_C" == true ]]; then
+        results=$("${curl_cmd[@]}" "$url" | extract_locs)
+    else
+        results=$("${curl_cmd[@]}" "$url" | \
+            xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n)
+    fi
     if [[ -n "${FILTER_PATTERN:-}" ]]; then
         results=$(printf '%s\n' "$results" | grep -E "$FILTER_PATTERN" || true)
     fi
@@ -47,7 +51,8 @@ main() {
     local echo_urls=false
     local user_agent=""
     local filter_pattern=""
-    while getopts "j:ea:f:" opt; do
+    local use_c=false
+    while getopts "j:ea:f:c" opt; do
         case "$opt" in
             j)
                 cli_jobs="$OPTARG"
@@ -61,6 +66,9 @@ main() {
             f)
                 filter_pattern="$OPTARG"
                 ;;
+            c)
+                use_c=true
+                ;;
             *)
                 usage
                 ;;
@@ -70,6 +78,10 @@ main() {
 
     USER_AGENT="$user_agent"
     FILTER_PATTERN="$filter_pattern"
+    USE_C="$use_c"
+    if [[ "$USE_C" == true ]]; then
+        require_command extract_locs
+    fi
 
     # Ensure exactly two arguments are provided: the config file and output file.
     if [[ $# -ne 2 ]]; then
