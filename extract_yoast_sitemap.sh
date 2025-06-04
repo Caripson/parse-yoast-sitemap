@@ -14,7 +14,7 @@ require_command() {
 
 usage() {
     # Print script usage information and exit with an error code.
-    echo "Usage: $0 [-j jobs] <sitemap_index_url> <output_file>" >&2
+    echo "Usage: $0 [-j jobs] <config_file> <output_file>" >&2
     exit 1
 }
 
@@ -29,6 +29,7 @@ fetch_locs() {
 main() {
     require_command curl
     require_command xmlstarlet
+    require_command jq
     # Parse options; currently only -j for specifying parallel jobs.
     local cli_jobs=""
     while getopts "j:" opt; do
@@ -43,15 +44,21 @@ main() {
     done
     shift $((OPTIND - 1))
 
-    # Ensure exactly two arguments are provided: the index URL and output file.
+    # Ensure exactly two arguments are provided: the config file and output file.
     if [[ $# -ne 2 ]]; then
         usage
     fi
 
-    # URL to the sitemap index.
-    local index_url="$1"
+    # Path to the JSON configuration file.
+    local config_file="$1"
     # File where the extracted URLs will be written.
     local output_file="$2"
+
+    # Verify that the configuration file exists and is readable.
+    if [[ ! -r "$config_file" ]]; then
+        echo "Cannot read $config_file" >&2
+        exit 1
+    fi
 
     # Verify that the output file is writable.
     if ! touch "$output_file" 2>/dev/null; then
@@ -62,9 +69,13 @@ main() {
     # Seed the output file with a small header.
     echo "# URL list" > "$output_file"
 
-    # Read all sitemap URLs from the index into an array.
-    local -a sitemaps
-    mapfile -t sitemaps < <(fetch_locs "$index_url")
+    # Gather sitemap URLs from every domain listed in the configuration file.
+    local -a index_urls sitemaps tmp
+    mapfile -t index_urls < <(jq -r '.domains[].url' "$config_file")
+    for index_url in "${index_urls[@]}"; do
+        mapfile -t tmp < <(fetch_locs "$index_url")
+        sitemaps+=("${tmp[@]}")
+    done
 
     # Determine how many parallel workers should run. The -j option overrides
     # the PARALLEL_JOBS environment variable.
