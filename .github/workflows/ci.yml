@@ -27,7 +27,7 @@ jobs:
       - name: Run black
         run: poetry run black --check .
       - name: Run ruff
-        run: poetry run ruff .
+        run: poetry run ruff check .
       - name: Run mypy
         run: poetry run mypy src
       - name: Run bandit
