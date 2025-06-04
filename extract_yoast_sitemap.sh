@@ -14,7 +14,7 @@ require_command() {
 
 usage() {
     # Print script usage information and exit with an error code.
-    echo "📥 Usage: $0 [-e] [-j jobs] [-a user_agent] <config_file> <output_file>" >&2
+    echo "📥 Usage: $0 [-e] [-j jobs] [-a user_agent] [-f pattern] <config_file> <output_file>" >&2
     exit 1
 }
 
@@ -27,7 +27,15 @@ fetch_locs() {
     if [[ -n "$USER_AGENT" ]]; then
         curl_cmd+=( -A "$USER_AGENT" )
     fi
-    "${curl_cmd[@]}" "$url" | xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n
+    local results
+    results=$("${curl_cmd[@]}" "$url" | \
+        xmlstarlet sel -t -m '//*[local-name()="loc"]' -v . -n)
+    if [[ -n "${FILTER_PATTERN:-}" ]]; then
+        results=$(printf '%s\n' "$results" | grep -E "$FILTER_PATTERN" || true)
+    fi
+    if [[ -n "$results" ]]; then
+        printf '%s\n' "$results"
+    fi
 }
 
 main() {
@@ -38,7 +46,8 @@ main() {
     local cli_jobs=""
     local echo_urls=false
     local user_agent=""
-    while getopts "j:ea:" opt; do
+    local filter_pattern=""
+    while getopts "j:ea:f:" opt; do
         case "$opt" in
             j)
                 cli_jobs="$OPTARG"
@@ -49,6 +58,9 @@ main() {
             a)
                 user_agent="$OPTARG"
                 ;;
+            f)
+                filter_pattern="$OPTARG"
+                ;;
             *)
                 usage
                 ;;
@@ -57,6 +69,7 @@ main() {
     shift $((OPTIND - 1))
 
     USER_AGENT="$user_agent"
+    FILTER_PATTERN="$filter_pattern"
 
     # Ensure exactly two arguments are provided: the config file and output file.
     if [[ $# -ne 2 ]]; then
@@ -101,7 +114,7 @@ main() {
         # Temporary file to collect URL counts from each worker.
         local tmp_counts="$(mktemp)"
         export -f fetch_locs
-        export output_file tmp_counts echo_urls
+        export output_file tmp_counts echo_urls USER_AGENT FILTER_PATTERN
         # Feed the sitemap URLs to xargs which spawns workers that append their
         # results to the output file and record how many URLs were written.
         printf '%s\n' "${sitemaps[@]}" | \

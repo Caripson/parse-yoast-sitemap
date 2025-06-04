@@ -28,7 +28,7 @@ default, sitemaps are processed sequentially. To fetch them in parallel, set the
 ## 📥 Usage
 
 ```bash
-./extract_yoast_sitemap.sh [-e] [-j jobs] [-a user_agent] <config_file> <output_file>
+./extract_yoast_sitemap.sh [-e] [-j jobs] [-a user_agent] [-f pattern] <config_file> <output_file>
 ```
 
 ### Flags
@@ -36,6 +36,7 @@ default, sitemaps are processed sequentially. To fetch them in parallel, set the
 * `-e` &nbsp; echo each extracted URL to stdout
 * `-j` &nbsp; run multiple workers in parallel
 * `-a` &nbsp; specify a custom User-Agent header when fetching sitemaps
+* `-f` &nbsp; only include URLs matching the given pattern
 
 ## 🚀 Installation
 
@@ -70,8 +71,17 @@ The test uses sample sitemaps in `tests/data` and verifies that `extract_yoast_s
 ## 📝 Example Run
 
 ```bash
-./extract_yoast_sitemap.sh -e -a "MyBot/1.0" https://example.com/sitemap_index.xml urls.txt
+./extract_yoast_sitemap.sh -e -a "MyBot/1.0" -f page https://example.com/sitemap_index.xml urls.txt
 cat urls.txt
+```
+
+## 🐳 Running with Docker
+
+Build the image and run the script inside a container:
+
+```bash
+docker build -t yoast-sitemap .
+docker run --rm -v "$PWD":/data yoast-sitemap /data/config.json /data/urls.txt
 ```
 
 ## 🔭 Future Work
@@ -79,8 +89,6 @@ cat urls.txt
 Here are a few ideas for how this project could evolve:
 
 * Support for compressed (`.gz`) sitemaps
-* Docker container for reproducible runs
-* Option to filter URLs by pattern
 
 
 ## 🛠️ Troubleshooting
