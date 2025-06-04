@@ -227,7 +227,15 @@ python3 serve_reports.py
 ```
 
 Edit `server_config.json` to change the port or choose a different JSON file to
-monitor. By default the server reads `report.json` on port `8000`.
+monitor. By default the server reads `report.json` on port `8000`. You can also
+override the refresh interval with the `--interval` flag when starting the
+server:
+
+```bash
+python3 serve_reports.py --interval 10
+```
+
+The real-time page now uses Bootstrap and Bootstrap Icons for a cleaner look.
 
 Open `http://localhost:8000` in your browser to see the latest statistics. The
 page automatically refreshes based on the `refresh_interval` setting.
