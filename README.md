@@ -209,8 +209,10 @@ bash extract_yoast_sitemap.sh -c -j 2 config.json urls.txt
 
 ## 📊 Real-Time Reporting
 
-Run the optional web server to monitor changes live. First install the Python
-packages:
+Run the optional web server to monitor changes live. The server does not start
+automatically when running `extract_yoast_sitemap.sh`, so the script can be
+executed on its own. Start the server only if you want to inspect statistics
+while the reports are being written. First install the Python packages:
 
 ```bash
 pip install -r requirements.txt
@@ -224,8 +226,15 @@ cp server_config.example.json server_config.json
 python3 serve_reports.py
 ```
 
+Edit `server_config.json` to change the port or choose a different JSON file to
+monitor. By default the server reads `report.json` on port `8000`.
+
 Open `http://localhost:8000` in your browser to see the latest statistics. The
 page automatically refreshes based on the `refresh_interval` setting.
+
+The web page summarizes the total number of URLs that have been added,
+changed or removed across all runs and shows the last ten executions in a
+table.
 
 ## 🛡 Best Practices
 
