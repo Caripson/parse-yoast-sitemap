@@ -91,8 +91,11 @@ same across Linux and macOS.
 ## 🧪 Running Tests
 
 This repository uses [Bats](https://github.com/bats-core/bats-core) and
-[pytest](https://docs.pytest.org/) for testing. After installing the `bats`
-package and Python dependencies, run:
+[pytest](https://docs.pytest.org/) for testing. Make sure the system tools used
+by the script (`curl`, `xmlstarlet` and `jq`) are available in your `PATH`.
+CI installs them via `apt`, but local runs may require installing these
+packages manually. After installing the dependencies and the `bats` package,
+run:
 
 ```bash
 bats tests/extract_yoast_sitemap.bats

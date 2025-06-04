@@ -2,3 +2,5 @@ Flask
 matplotlib
 weasyprint
 psutil
+types-Flask
+types-psutil

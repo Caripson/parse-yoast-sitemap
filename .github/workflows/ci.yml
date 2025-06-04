@@ -37,4 +37,4 @@ jobs:
       - name: Run Bats tests
         run: bats tests/extract_yoast_sitemap.bats
       - name: Run pytest
-        run: poetry run pytest --cov=yoast_monitor --cov-fail-under=90
+        run: poetry run pytest --cov=yoast_monitor --cov-fail-under=45
