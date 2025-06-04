@@ -15,7 +15,7 @@ broken-link audits or verifying crawl coverage.
 - **Real-time dashboard** – lightweight Flask UI (auto-refresh or SSE) to watch crawls live.  
 - **Cross-platform** – works on Linux and macOS; falls back to compatible `stat`/hash commands.  
 - **Automated tests & CI** – Bats + pytest with GitHub Actions, coverage ≥ 90 %.  
-- **Docker & PyPI** – run as a container or install via `pip install parse-yoast-sitemap` (planned).
+- **Docker & PyPI** – run as a container or install via `pip install yoast-sitemap-monitor`.
 
 ## 📝 Requirements
 
