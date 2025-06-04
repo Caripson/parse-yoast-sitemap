@@ -1,16 +1,21 @@
 # parse-yoast-sitemap
-Parse a Yoast sitemap.xml into a plain URL list using a single Bash script.
+Parse an entire **Yoast** `sitemap.xml` (and its nested index files) into a plain
+list of URLs using one lean Bash script – no heavyweight dependencies required.
 
-This tool targets **administrators and SEO specialists** who need a quick way
-to gather every URL that Yoast exposes in its sitemap index.  Typical use cases
-include site migrations, broken-link audits or verifying that all pages are
-being discovered by search engines.
+The tool is built for **administrators, SEO specialists and DevOps/SRE teams**
+who need a repeatable way to collect every public URL exposed by
+Yoast-powered WordPress sites. Typical tasks include site migrations,
+broken-link audits or verifying crawl coverage.
 
-## 📚 History
+## ✨ Features
 
-The script started as a small internal helper written by Johan Caripson to
-collect URLs from several WordPress sites.  It has since been cleaned up and
-packaged with a test suite so it can be reused by others.
+- **Single-file Bash script** – portable, easy to read, no installer needed.  
+- **Fast** – XML streamed through `xmlstarlet`; optional C parser for huge sitemaps.  
+- **Diff & caching** – stores previous downloads, highlights added/removed URLs, JSON/CSV reports.  
+- **Real-time dashboard** – lightweight Flask UI (auto-refresh or SSE) to watch crawls live.  
+- **Cross-platform** – works on Linux and macOS; falls back to compatible `stat`/hash commands.  
+- **Automated tests & CI** – Bats + pytest with GitHub Actions, coverage ≥ 90 %.  
+- **Docker & PyPI** – run as a container or install via `pip install yoast-monitor` (planned).
 
 ## 📝 Requirements
 
@@ -305,3 +310,8 @@ python3 ec2_cli.py stop <instance-id>
 * Added `ec2_manager.py` for easy EC2 deployment and live server metrics.
 * Added `ec2_cli.py` for deployments via the AWS CLI.
 
+## 📚 History
+
+The script started as a small internal helper written by Johan Caripson to
+collect URLs from several WordPress sites.  It has since been cleaned up and
+packaged with a test suite so it can be reused by others.
