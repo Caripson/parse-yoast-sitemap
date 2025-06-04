@@ -69,6 +69,9 @@ main() {
     # Seed the output file with a small header.
     echo "# URL list" > "$output_file"
 
+    # Counter for how many URLs we extract in total.
+    local url_count=0
+
     # Gather sitemap URLs from every domain listed in the configuration file.
     local -a index_urls sitemaps tmp
     mapfile -t index_urls < <(jq -r '.domains[].url' "$config_file")
@@ -81,18 +84,31 @@ main() {
     # the PARALLEL_JOBS environment variable.
     local parallel_jobs="${cli_jobs:-${PARALLEL_JOBS:-1}}"
     if [[ "$parallel_jobs" -gt 1 ]]; then
-        # Export the helper so xargs can call it in parallel.
+        # Temporary file to collect URL counts from each worker.
+        local tmp_counts="$(mktemp)"
         export -f fetch_locs
+        export output_file tmp_counts
         # Feed the sitemap URLs to xargs which spawns workers that append their
-        # results to the output file.
+        # results to the output file and record how many URLs were written.
         printf '%s\n' "${sitemaps[@]}" | \
-            xargs -n1 -P "$parallel_jobs" -I{} bash -c 'fetch_locs "$1"' _ {} >> "$output_file"
+            xargs -n1 -P "$parallel_jobs" -I{} bash -c '
+                count=$(fetch_locs "$1" | tee -a "$output_file" | wc -l)
+                echo "$count" >> "$tmp_counts"
+            ' _ {}
+        while read -r c; do
+            ((url_count+=c))
+        done < "$tmp_counts"
+        rm "$tmp_counts"
     else
         # Sequentially process each sitemap when PARALLEL_JOBS is 1.
         for sitemap_url in "${sitemaps[@]}"; do
-            fetch_locs "$sitemap_url" >> "$output_file"
+            mapfile -t tmp < <(fetch_locs "$sitemap_url")
+            printf '%s\n' "${tmp[@]}" >> "$output_file"
+            ((url_count+=${#tmp[@]}))
         done
     fi
+
+    echo "🔢 Extracted $url_count URLs."
 }
 
 main "$@"
