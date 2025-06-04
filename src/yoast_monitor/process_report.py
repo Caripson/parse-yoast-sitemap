@@ -15,7 +15,7 @@ except Exception as e:
     sys.exit(1)
 
 
-def main() -> None:
+def main(argv=None) -> None:
     parser = argparse.ArgumentParser(
         description="Generate an HTML report from a JSON sitemap change log"
     )
@@ -27,7 +27,7 @@ def main() -> None:
         "html_output",
         help="File to write the generated HTML report to",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     json_file = args.json_input
     html_out = args.html_output
@@ -43,7 +43,9 @@ def main() -> None:
     changed = sum(len(d.get("changed_urls", [])) for d in data)
     removed = sum(len(d.get("removed_urls", [])) for d in data)
 
-    daily = defaultdict(lambda: {"added": 0, "changed": 0, "removed": 0})
+    daily: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"added": 0, "changed": 0, "removed": 0}
+    )
     for entry in data:
         ts = entry.get("timestamp")
         if isinstance(ts, (int, float)):
@@ -104,7 +106,8 @@ def main() -> None:
         f.write(html)
 
     try:
-        from weasyprint import HTML
+        from weasyprint import HTML  # type: ignore
+
         HTML(html_out).write_pdf(html_out.replace(".html", ".pdf"))
     except Exception:
         pass

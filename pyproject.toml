@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "yoast-sitemap-monitor"
+version = "0.1.0"
+description = "Monitor Yoast sitemaps"
+authors = ["Johan Caripson"]
+readme = "README.md"
+packages = [{include = "yoast_monitor", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+Flask = "*"
+matplotlib = "*"
+weasyprint = "*"
+
+[tool.poetry.scripts]
+yoast-monitor = "yoast_monitor.cli:main"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+coverage = "*"
+black = "*"
+ruff = "*"
+mypy = "*"
+bandit = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
