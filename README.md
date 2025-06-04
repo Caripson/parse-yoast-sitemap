@@ -106,3 +106,61 @@ If `curl`, `xmlstarlet` or `jq` are missing in the Codex environment, tests may 
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+## Example Configuration
+
+Copy `config.example.json` to `config.json` and edit the sitemap URLs you want to process:
+
+```json
+{
+  "domains": [
+    {"url": "https://example.com/sitemap_index.xml"},
+    {"url": "https://example.org/sitemap.xml"}
+  ]
+}
+```
+
+## 🇸🇪 Snabbstart
+
+Följ stegen nedan för att komma igång:
+
+1. Hämta koden och gå in i katalogen:
+   ```bash
+   git clone https://github.com/<användare>/parse-yoast-sitemap.git
+   cd parse-yoast-sitemap
+   git pull
+   ```
+2. Installera beroenden (exempel för Debian/Ubuntu):
+   ```bash
+   sudo apt-get update && sudo apt-get install curl xmlstarlet jq
+   ```
+   För att kunna använda C-varianten av parsern krävs även `libxml2` och kompilering:
+   ```bash
+   gcc extract_locs.c -o extract_locs $(xml2-config --cflags --libs)
+   ```
+3. Skapa din konfigurationsfil:
+   ```bash
+   cp config.example.json config.json
+   # redigera config.json och lägg in dina sitemap-länkar
+   ```
+4. Kör skriptet och spara alla URL:er i `urls.txt`:
+   ```bash
+   bash extract_yoast_sitemap.sh config.json urls.txt
+   ```
+
+### Exempel på kommandon
+
+```bash
+# Skriv ut URL:erna samtidigt som de sparas
+bash extract_yoast_sitemap.sh -e config.json urls.txt
+
+# Hämta bara URL:er som innehåller ordet "blog" och kör fyra jobb parallellt
+bash extract_yoast_sitemap.sh -f blog -j 4 config.json urls.txt
+
+# Ange egen User-Agent
+bash extract_yoast_sitemap.sh -a "MyBot/1.0" config.json urls.txt
+
+# Använd C-parsern och två parallella jobb
+bash extract_yoast_sitemap.sh -c -j 2 config.json urls.txt
+```
+

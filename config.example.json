@@ -1,0 +1,7 @@
+{
+  "domains": [
+    {"url": "https://example.com/sitemap_index.xml"},
+    {"url": "https://example.org/sitemap.xml"},
+    {"url": "https://myblog.example.net/sitemap_index.xml"}
+  ]
+}
