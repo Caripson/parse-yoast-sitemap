@@ -28,7 +28,7 @@ default, sitemaps are processed sequentially. To fetch them in parallel, set the
 ## 📥 Usage
 
 ```bash
-./extract_yoast_sitemap.sh [-e] [-j jobs] [-a user_agent] [-f pattern] <config_file> <output_file>
+./extract_yoast_sitemap.sh [-e] [-j jobs] [-a user_agent] [-f pattern] [-k days] [-r] <config_file> <output_file>
 ```
 
 ### Flags
@@ -38,6 +38,8 @@ default, sitemaps are processed sequentially. To fetch them in parallel, set the
 * `-a` &nbsp; specify a custom User-Agent header when fetching sitemaps
 * `-f` &nbsp; only include URLs matching the given pattern
 * `-c` &nbsp; use the optional C parser for URL extraction
+* `-k` &nbsp; keep downloaded sitemaps for the given number of days (default 30)
+* `-r` &nbsp; fetch new versions and report changes compared to the cached copy
 
 ## 🚀 Installation
 
@@ -83,6 +85,14 @@ The test uses sample sitemaps in `tests/data` and verifies that `extract_yoast_s
 cat urls.txt
 ```
 
+## 📦 Caching and Reports
+
+Downloaded sitemap files are stored in the `cache` directory. By default the
+script keeps them for 30 days to avoid unnecessary network requests. The
+retention period can be adjusted with the `-k` flag. Use `-r` to force a fresh
+download and print a report of added or removed URLs compared to the cached
+version.
+
 ## 🐳 Running with Docker
 
 Build the image and run the script inside a container:
@@ -120,47 +130,47 @@ Copy `config.example.json` to `config.json` and edit the sitemap URLs you want t
 }
 ```
 
-## 🇸🇪 Snabbstart
+## Quick Start
 
-Följ stegen nedan för att komma igång:
+Follow these steps to get up and running:
 
-1. Hämta koden och gå in i katalogen:
+1. Clone the repository and enter the folder:
    ```bash
-   git clone https://github.com/<användare>/parse-yoast-sitemap.git
+   git clone https://github.com/<user>/parse-yoast-sitemap.git
    cd parse-yoast-sitemap
    git pull
    ```
-2. Installera beroenden (exempel för Debian/Ubuntu):
+2. Install the dependencies (Debian/Ubuntu example):
    ```bash
    sudo apt-get update && sudo apt-get install curl xmlstarlet jq
    ```
-   För att kunna använda C-varianten av parsern krävs även `libxml2` och kompilering:
+   To enable the C version of the parser you also need `libxml2` and a build step:
    ```bash
    gcc extract_locs.c -o extract_locs $(xml2-config --cflags --libs)
    ```
-3. Skapa din konfigurationsfil:
+3. Create your configuration file:
    ```bash
    cp config.example.json config.json
-   # redigera config.json och lägg in dina sitemap-länkar
+   # edit config.json and add your sitemap links
    ```
-4. Kör skriptet och spara alla URL:er i `urls.txt`:
+4. Run the script and store all URLs in `urls.txt`:
    ```bash
    bash extract_yoast_sitemap.sh config.json urls.txt
    ```
 
-### Exempel på kommandon
+### Example commands
 
 ```bash
-# Skriv ut URL:erna samtidigt som de sparas
+# Print URLs while they are saved
 bash extract_yoast_sitemap.sh -e config.json urls.txt
 
-# Hämta bara URL:er som innehåller ordet "blog" och kör fyra jobb parallellt
+# Only fetch URLs containing the word "blog" and run four jobs in parallel
 bash extract_yoast_sitemap.sh -f blog -j 4 config.json urls.txt
 
-# Ange egen User-Agent
+# Specify a custom User-Agent
 bash extract_yoast_sitemap.sh -a "MyBot/1.0" config.json urls.txt
 
-# Använd C-parsern och två parallella jobb
+# Use the C parser with two parallel jobs
 bash extract_yoast_sitemap.sh -c -j 2 config.json urls.txt
 ```
 
