@@ -6,8 +6,8 @@ Parse yoast sitemap.xml with bash to URL list
 The script depends on `curl` and [`xmlstarlet`](https://xmlstar.sourceforge.net/).
 Both commands must be installed for the script to run. By default, sitemaps
 are processed sequentially. To fetch them in parallel, set the
-`PARALLEL_JOBS` environment variable; parallel execution relies on `xargs`
-to spawn multiple workers.
+`PARALLEL_JOBS` environment variable or pass `-j <jobs>` on the command
+line; parallel execution relies on `xargs` to spawn multiple workers.
 
 ## Running Tests
 
