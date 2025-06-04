@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>http://example.com/post1</loc></url>
-  <url><loc>http://example.com/post2</loc></url>
+  <url>
+    <loc>http://example.com/post1</loc>
+    <lastmod>2020-01-03T00:00:00+00:00</lastmod>
+  </url>
+  <url>
+    <loc>http://example.com/post2</loc>
+    <lastmod>2020-01-04T00:00:00+00:00</lastmod>
+  </url>
 </urlset>
