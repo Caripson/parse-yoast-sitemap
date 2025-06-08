@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "yoast-sitemap-monitor"
+name = "parse-yoast-sitemap"
 version = "0.1.0"
 description = "Monitor Yoast sitemaps"
 authors = ["Johan Caripson"]
@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "yoast_monitor", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 Flask = "*"
 matplotlib = "*"
 weasyprint = "*"
@@ -16,6 +16,7 @@ paramiko = "*"
 
 [tool.poetry.scripts]
 yoast-monitor = "yoast_monitor.cli:main"
+parse-yoast-sitemap = "yoast_monitor.cli:main"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"

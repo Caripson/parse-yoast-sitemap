@@ -5,7 +5,7 @@ from .serve_reports import main as serve_reports_main
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog="yoast-monitor")
+    parser = argparse.ArgumentParser(prog="parse-yoast-sitemap")
     parser.add_argument("--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="cmd", required=True)
 

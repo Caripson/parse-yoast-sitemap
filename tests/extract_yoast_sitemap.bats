@@ -1,5 +1,13 @@
 #!/usr/bin/env bats
 
+setup_file() {
+  for cmd in curl xmlstarlet jq gcc xml2-config; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+      skip "Required command '$cmd' not installed"
+    fi
+  done
+}
+
 setup() {
   TMP_OUT="$(mktemp)"
   TMP_CONFIG="$(mktemp)"
@@ -8,7 +16,11 @@ setup() {
   TMP_BIN_DIR="$(mktemp -d)"
   sed "s|{{ROOT}}|file://${PWD}|g" tests/data/index1.template.xml > "$TMP_INDEX1"
   sed "s|{{ROOT}}|file://${PWD}|g" tests/data/index2.template.xml > "$TMP_INDEX2"
-  gcc extract_locs.c -o "$TMP_BIN_DIR/extract_locs" $(xml2-config --cflags --libs)
+  if command -v xml2-config >/dev/null 2>&1; then
+    gcc extract_locs.c -o "$TMP_BIN_DIR/extract_locs" $(xml2-config --cflags --libs)
+  else
+    gcc extract_locs.c -o "$TMP_BIN_DIR/extract_locs" $(pkg-config --cflags --libs libxml-2.0)
+  fi
   PATH="$TMP_BIN_DIR:$PATH"
   cat > "$TMP_CONFIG" <<EOF
 {
