@@ -7,7 +7,7 @@ who need a repeatable way to collect every public URL exposed by
 Yoast-powered WordPress sites. Typical tasks include site migrations,
 broken-link audits or verifying crawl coverage.
 
-![Screenshot](parse-yoast-sitemap-logo.png )
+<img src="parse-yoast-sitemap-logo.png" alt="Screenshot" width="300">
 
 ## ✨ Features
 
