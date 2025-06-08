@@ -14,7 +14,7 @@ broken-link audits or verifying crawl coverage.
 - **Single-file Bash script** – portable, easy to read, no installer needed.  
 - **Fast** – XML streamed through `xmlstarlet`; optional C parser for huge sitemaps.  
 - **Diff & caching** – stores previous downloads, highlights added/removed URLs, JSON/CSV reports.  
-- **Real-time dashboard** – lightweight Flask UI (auto-refresh or SSE) to watch crawls live.  
+- **Real-time dashboard** – lightweight Flask UI with auto-refresh to watch crawls live.
 - **Cross-platform** – works on Linux and macOS; falls back to compatible `stat`/hash commands.  
 - **Automated tests & CI** – Bats + pytest with GitHub Actions, coverage ≥ 90 %.  
 - **Docker image** – build the provided Dockerfile to run everything in a container.
@@ -156,8 +156,8 @@ appended as a single JSON object:
 Build the image and run the script inside a container:
 
 ```bash
-docker build -t yoast-sitemap .
-docker run --rm -v "$PWD":/data yoast-sitemap /data/config.json /data/urls.txt
+docker build -t parse-yoast-sitemap .
+docker run --rm -v "$PWD":/data parse-yoast-sitemap /data/config.json /data/urls.txt
 ```
 
 ## 🔭 Future Work
